@@ -9,7 +9,7 @@ function getSequencePreview(sequence: string) {
     return "-";
   }
 
-  return text.length > 60 ? `${text.slice(0, 60)}...` : text;
+  return text.length > 50 ? `${text.slice(0, 50)}...` : text;
 }
 
 export const dynamic = "force-dynamic";
@@ -104,21 +104,15 @@ export default async function ReferencesAdminPage({
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-100 text-left text-sm">
+            <table className="min-w-[960px] table-fixed divide-y divide-slate-100 text-left text-sm">
               <thead className="bg-emerald-50 text-slate-700">
                 <tr>
-                  {[
-                    "菌株编号",
-                    "属 Genus",
-                    "测序类型",
-                    "鉴定序列预览",
-                    "是否发表文章",
-                    "文章名称",
-                  ].map((heading, index) => (
-                    <th key={`${heading}-${index}`} className="px-4 py-3 font-semibold">
-                      {heading}
-                    </th>
-                  ))}
+                  <th className="w-32 px-4 py-3 font-semibold">菌株编号</th>
+                  <th className="w-36 px-4 py-3 font-semibold">属 Genus</th>
+                  <th className="w-28 px-4 py-3 font-semibold">测序类型</th>
+                  <th className="w-80 px-4 py-3 font-semibold">鉴定序列预览</th>
+                  <th className="w-32 px-4 py-3 font-semibold">是否发表文章</th>
+                  <th className="w-52 px-4 py-3 font-semibold">文章名称</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -133,8 +127,10 @@ export default async function ReferencesAdminPage({
                     <td className="px-4 py-3 text-slate-600">
                       {strain.sequencingType || "-"}
                     </td>
-                    <td className="max-w-sm px-4 py-3 font-mono text-xs text-slate-600">
-                      {getSequencePreview(strain.sequenceText)}
+                    <td className="w-80 px-4 py-3">
+                      <span className="block max-w-[20rem] overflow-hidden text-ellipsis whitespace-nowrap font-mono text-xs text-slate-600">
+                        {getSequencePreview(strain.sequenceText)}
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       {strain.hasPaper || "-"}
