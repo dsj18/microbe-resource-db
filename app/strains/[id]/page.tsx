@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DetailQrCodePanel } from "@/src/components/DetailQrCodePanel";
 import { SequenceTextBlock } from "@/src/components/SequenceTextBlock";
 import { DataTags } from "@/src/components/StrainCard";
 import { getStrainByCode } from "@/src/lib/supabase/strains";
@@ -60,6 +61,10 @@ export default async function StrainDetailPage({
     ["是否发表文章", strain.has_paper],
     ["文章名称", strain.paper_name],
   ];
+  const baseUrl = (
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+  ).replace(/\/$/, "");
+  const detailUrl = `${baseUrl}/strains/${encodeURIComponent(strain.code)}`;
 
   return (
     <main className="min-h-screen">
@@ -127,12 +132,7 @@ export default async function StrainDetailPage({
         <aside className="space-y-6">
           <InfoSection title="保存信息" rows={storageRows} />
 
-          <section className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-slate-950">二维码访问</h2>
-            <div className="mt-4 flex aspect-square items-center justify-center rounded-lg border-2 border-dashed border-emerald-300 bg-emerald-50 p-6 text-center text-sm font-medium leading-6 text-emerald-800">
-              二维码占位，后续扫码进入当前菌株详情页
-            </div>
-          </section>
+          <DetailQrCodePanel code={strain.code} detailUrl={detailUrl} />
         </aside>
       </div>
     </main>
