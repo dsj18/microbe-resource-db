@@ -2,14 +2,6 @@ import Link from "next/link";
 import { PageHeader } from "@/src/components/PageHeader";
 import { StrainForm } from "@/src/components/StrainForm";
 
-const futurePlans = [
-  "完善后台编辑、删除和批量校验流程",
-  "为新增记录增加更细致的字段校验和权限控制",
-  "支持保存后继续新增下一条记录",
-  "支持 Excel 批量导入与字段校验",
-  "支持文件上传，包括图片、序列文件和论文 PDF",
-];
-
 export default function AdminPage() {
   return (
     <main className="min-h-screen">
@@ -24,21 +16,6 @@ export default function AdminPage() {
         </div>
 
         <StrainForm mode="create" />
-
-        <section className="mt-8 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-semibold text-slate-950">后续计划</h2>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
-            {futurePlans.map((plan, index) => (
-              <li
-                key={`${plan}-${index}`}
-                className="flex items-start gap-3 text-sm text-slate-700"
-              >
-                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-600" />
-                {plan}
-              </li>
-            ))}
-          </ul>
-        </section>
 
         <Link
           href="/"
