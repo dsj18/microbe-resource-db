@@ -1,8 +1,18 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/src/components/PageHeader";
 import { StrainForm } from "@/src/components/StrainForm";
+import { isAdminAuthenticated } from "@/src/lib/admin-auth";
 
-export default function AdminPage() {
+export const dynamic = "force-dynamic";
+
+export default async function AdminPage() {
+  const isAuthenticated = await isAdminAuthenticated();
+
+  if (!isAuthenticated) {
+    redirect("/login");
+  }
+
   return (
     <main className="min-h-screen">
       <PageHeader

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { PageHeader } from "@/src/components/PageHeader";
 import { StrainForm } from "@/src/components/StrainForm";
+import { isAdminAuthenticated } from "@/src/lib/admin-auth";
 import { getStrainByCode } from "@/src/lib/supabase/strains";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +12,12 @@ export default async function EditStrainPage({
 }: {
   params: Promise<{ code: string }>;
 }) {
+  const isAuthenticated = await isAdminAuthenticated();
+
+  if (!isAuthenticated) {
+    redirect("/login");
+  }
+
   const { code } = await params;
   const decodedCode = decodeURIComponent(code);
   const strain = await getStrainByCode(decodedCode);
@@ -51,4 +59,3 @@ export default async function EditStrainPage({
     </main>
   );
 }
-
