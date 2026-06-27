@@ -191,6 +191,28 @@ function applyStorageSearch<T>(queryBuilder: T, query: string): T {
   return (queryBuilder as { or: (filters: string) => T }).or(filters);
 }
 
+function applyReferenceSearch<T>(queryBuilder: T, query: string): T {
+  const filters = buildIlikeFilters(
+    [
+      "code",
+      "genus",
+      "sequencing_type",
+      "sequence_text",
+      "has_paper",
+      "paper_name",
+      "has_patent",
+      "patent_name",
+    ],
+    query,
+  );
+
+  if (!filters) {
+    return queryBuilder;
+  }
+
+  return (queryBuilder as { or: (filters: string) => T }).or(filters);
+}
+
 export async function getStrainCount() {
   const { count, error } = await supabase
     .from("microbe_strains")
@@ -426,4 +448,42 @@ export async function getReferenceRows(limit = 100) {
   }
 
   return (data ?? []).map(toDisplayStrain);
+}
+
+export async function getReferencePage({
+  page,
+  pageSize,
+  query,
+}: {
+  page: number;
+  pageSize: number;
+  query: string;
+}) {
+  const currentPage = Math.max(1, page);
+  const from = (currentPage - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let request = supabase
+    .from("microbe_strains")
+    .select(
+      "code,genus,sequencing_type,sequence_text,has_paper,paper_name,has_patent,patent_name",
+      { count: "exact" },
+    );
+
+  request = applyReferenceSearch(request, query);
+
+  const { data, count, error } = await request
+    .order("code", { ascending: true })
+    .range(from, to)
+    .returns<MicrobeStrain[]>();
+
+  if (error) {
+    throw new Error(`Failed to fetch reference page: ${error.message}`);
+  }
+
+  return {
+    strains: (data ?? []).map(toDisplayStrain),
+    totalCount: count ?? 0,
+    page: currentPage,
+    pageSize,
+  };
 }
