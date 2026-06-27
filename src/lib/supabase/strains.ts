@@ -170,6 +170,27 @@ function applyQrCodeSearch<T>(queryBuilder: T, query: string): T {
   return (queryBuilder as { or: (filters: string) => T }).or(filters);
 }
 
+function applyStorageSearch<T>(queryBuilder: T, query: string): T {
+  const filters = buildIlikeFilters(
+    [
+      "code",
+      "genus",
+      "crop",
+      "storage_condition",
+      "freezer_number",
+      "storage_location",
+      "owner",
+    ],
+    query,
+  );
+
+  if (!filters) {
+    return queryBuilder;
+  }
+
+  return (queryBuilder as { or: (filters: string) => T }).or(filters);
+}
+
 export async function getStrainCount() {
   const { count, error } = await supabase
     .from("microbe_strains")
@@ -300,6 +321,44 @@ export async function getStorageRows(limit = 100) {
   }
 
   return (data ?? []).map(toDisplayStrain);
+}
+
+export async function getStoragePage({
+  page,
+  pageSize,
+  query,
+}: {
+  page: number;
+  pageSize: number;
+  query: string;
+}) {
+  const currentPage = Math.max(1, page);
+  const from = (currentPage - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let request = supabase
+    .from("microbe_strains")
+    .select(
+      "code,genus,crop,storage_condition,freezer_number,storage_location,owner",
+      { count: "exact" },
+    );
+
+  request = applyStorageSearch(request, query);
+
+  const { data, count, error } = await request
+    .order("code", { ascending: true })
+    .range(from, to)
+    .returns<MicrobeStrain[]>();
+
+  if (error) {
+    throw new Error(`Failed to fetch storage page: ${error.message}`);
+  }
+
+  return {
+    strains: (data ?? []).map(toDisplayStrain),
+    totalCount: count ?? 0,
+    page: currentPage,
+    pageSize,
+  };
 }
 
 export async function getQrCodeRows(limit = 100) {
