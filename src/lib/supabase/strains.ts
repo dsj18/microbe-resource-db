@@ -113,21 +113,24 @@ export function toDisplayStrain(strain: MicrobeStrain): Strain {
 }
 
 function cleanSearchQuery(query: string) {
-  return query.trim().replace(/[%_,().]/g, " ").replace(/\s+/g, " ");
+  return query.trim().replace(/[%_,()."']/g, " ").replace(/\s+/g, " ");
 }
 
-function applySearch<T>(
-  queryBuilder: T,
-  query: string,
-): T {
+function buildIlikeFilters(fields: string[], query: string) {
   const cleanedQuery = cleanSearchQuery(query);
 
   if (!cleanedQuery) {
-    return queryBuilder;
+    return "";
   }
 
   const pattern = `%${cleanedQuery}%`;
-  const filters = [
+
+  return fields.map((field) => `${field}.ilike.${pattern}`).join(",");
+}
+
+function applySearch<T>(queryBuilder: T, query: string): T {
+  const filters = buildIlikeFilters(
+    [
     "code",
     "genus",
     "crop",
@@ -136,9 +139,33 @@ function applySearch<T>(
     "freezer_number",
     "storage_location",
     "owner",
-  ]
-    .map((field) => `${field}.ilike.${pattern}`)
-    .join(",");
+    ],
+    query,
+  );
+
+  if (!filters) {
+    return queryBuilder;
+  }
+
+  return (queryBuilder as { or: (filters: string) => T }).or(filters);
+}
+
+function applyQrCodeSearch<T>(queryBuilder: T, query: string): T {
+  const filters = buildIlikeFilters(
+    [
+      "code",
+      "genus",
+      "crop",
+      "source_part",
+      "freezer_number",
+      "storage_location",
+    ],
+    query,
+  );
+
+  if (!filters) {
+    return queryBuilder;
+  }
 
   return (queryBuilder as { or: (filters: string) => T }).or(filters);
 }
@@ -288,6 +315,43 @@ export async function getQrCodeRows(limit = 100) {
   }
 
   return (data ?? []).map(toDisplayStrain);
+}
+
+export async function getQrCodePage({
+  page,
+  pageSize,
+  query,
+}: {
+  page: number;
+  pageSize: number;
+  query: string;
+}) {
+  const currentPage = Math.max(1, page);
+  const from = (currentPage - 1) * pageSize;
+  const to = from + pageSize - 1;
+  let request = supabase
+    .from("microbe_strains")
+    .select("code,genus,crop,source_part,freezer_number,storage_location", {
+      count: "exact",
+    });
+
+  request = applyQrCodeSearch(request, query);
+
+  const { data, count, error } = await request
+    .order("code", { ascending: true })
+    .range(from, to)
+    .returns<MicrobeStrain[]>();
+
+  if (error) {
+    throw new Error(`Failed to fetch QR code page: ${error.message}`);
+  }
+
+  return {
+    strains: (data ?? []).map(toDisplayStrain),
+    totalCount: count ?? 0,
+    page: currentPage,
+    pageSize,
+  };
 }
 
 export async function getReferenceRows(limit = 100) {

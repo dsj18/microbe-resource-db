@@ -117,6 +117,7 @@ export function QrCodeCard({ strain, detailUrl }: QrCodeCardProps) {
         <div className="flex shrink-0 justify-center rounded-md border border-emerald-100 bg-emerald-50 p-3">
           <QRCodeCanvas
             ref={canvasRef}
+            data-qr-filename={`QR_${safeFileName(strain.code)}.png`}
             value={detailUrl}
             size={144}
             level="M"
@@ -159,4 +160,3 @@ export function QrCodeCard({ strain, detailUrl }: QrCodeCardProps) {
     </article>
   );
 }
-

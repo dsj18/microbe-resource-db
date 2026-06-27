@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SequenceTextBlock } from "@/src/components/SequenceTextBlock";
 import { DataTags } from "@/src/components/StrainCard";
 import { getStrainByCode } from "@/src/lib/supabase/strains";
 
@@ -115,9 +116,7 @@ export default async function StrainDetailPage({
             </dl>
             <div className="mt-5">
               <p className="text-sm font-medium text-slate-500">鉴定序列</p>
-              <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-md bg-slate-950 p-4 font-mono text-sm leading-6 text-emerald-50">
-                {strain.sequence_text || "暂无序列"}
-              </pre>
+              <SequenceTextBlock sequence={strain.sequence_text} />
             </div>
           </section>
 

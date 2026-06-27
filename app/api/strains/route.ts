@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
+import { isAdminAuthenticated } from "@/src/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,12 @@ function normalizeFreezerNumber(value: unknown) {
 }
 
 export async function POST(request: Request) {
+  const isAuthenticated = await isAdminAuthenticated();
+
+  if (!isAuthenticated) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   if (!supabaseUrl || !serviceRoleKey) {
     return Response.json(
       { error: "Missing Supabase server environment variables" },
@@ -131,4 +138,3 @@ export async function POST(request: Request) {
 
   return Response.json({ code: data.code });
 }
-
